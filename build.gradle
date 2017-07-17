@@ -20,7 +20,11 @@ defaultTasks 'build'
 repositories {
     mavenCentral()
     flatDir {
+        // Location of libraries on Windows
         dirs 'C:/Program Files/HDF_Group/HDF5/1.10.1/lib'
+        // Location of libraries on Linux
+        dirs '/usr/local/hdf5/lib'
+        // Location of CloudTurbine library, CTlib.jar
         dirs "$rootDir/../../CloudTurbine/JavaCode/Distribute"
     }
 }
