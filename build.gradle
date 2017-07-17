@@ -1,0 +1,140 @@
+
+// The following plugins and buildScan sections enable Gradle Build Scans;
+// from command line, run "gradle build --scan" to have the scan created
+// when building the code.  At the end of the compile, a URL is presented
+// to view build information online.
+plugins {
+	id 'com.gradle.build-scan' version '1.7'
+}
+
+buildScan {
+	licenseAgreementUrl = 'https://gradle.com/terms-of-service'
+	licenseAgree = 'yes'
+}
+
+apply plugin: 'java'
+
+defaultTasks 'build'
+
+// Supporting libraries go in Third_Party
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs 'C:/Program Files/HDF_Group/HDF5/1.10.1/lib'
+        dirs 'C:/Users/johnw/user/CloudTurbine/CloudTurbine/JavaCode/Distribute'
+    }
+}
+
+dependencies {
+	// Don't include the JAR as a dependency (it will try to unzip and add the
+	// individual files); instead, we just copy the DLL directly into the JAR
+	// in the jar task down below.
+    // compile name: 'hdf5_java', ext: 'dll'
+    compile name: 'jarhdf5-1.10.1'
+    compile name: 'slf4j-api-1.7.5'
+    compile name: 'slf4j-simple-1.7.5'
+    compile name: 'CTlib'
+    // For command line argument processing
+    compile group: 'commons-cli', name: 'commons-cli', version: '1.3.1'
+    // Next 2 dependencies are for JSON support library
+    compile group: 'javax.json', name: 'javax.json-api', version: '1.0'
+    compile group: 'org.glassfish', name: 'javax.json', version: '1.0.4'
+    // Google Guava, we use TreeMultimap
+    compile group: 'com.google.guava', name: 'guava', version: '22.0'
+}
+
+//
+// Automatically execute clean before build
+// Also, have Javadoc built at the same time we run the build task
+//
+// This gets around a problem we had with making our "fat" JAR files;
+// namely, if there was a change in a dependency (in a CTlib file, for
+// instance) but no change in any source files of the current project, then
+// the JAR file wasn't being rebuilt.  To get around this, whenever a user
+// asks to do a "build" we force a "clean" to be executed first.
+//
+// NOTE: Include the line to specify that "clean" is run before
+//       "compileJava"; otherwise, what was happening is that the Java
+//       files would be compiled and then "clean" was run right before
+//       "build" - so the build directory was being deleted!  See Kunal's
+//       forum response at:
+//       http://stackoverflow.com/questions/17617791/gradle-task-to-call-other-tasks-in-order
+//
+// Another way to do this is by creating a new task which will call the two
+// existing tasks.  Still need to include the "compileJava.mustRunAfter clean"
+// line when doing it this way.
+// task clean_build {
+// 	dependsOn clean, build
+// }
+//
+build.dependsOn clean,javadoc
+compileJava.mustRunAfter clean
+
+// Copy the JAR file to a top level "Distribute" folder; do this last so we
+// make sure to get the new JAR file that we just built
+// Also copy hdf5_java.dll to the Distribute folder
+build.doLast {
+	task -> println "Built $task.project.name"
+	String fromLoc = "${buildDir}/libs/" + project.name + ".jar"
+    String hdf5FromLoc = 'C:/Program Files/HDF_Group/HDF5/1.10.1/lib/hdf5_java.dll'
+	String toLoc = "./Distribute"
+	copy {
+		from fromLoc
+        from hdf5FromLoc
+		into toLoc
+	}
+}
+
+// Javadoc specifications
+javadoc {
+	source = sourceSets.main.allJava
+	destinationDir = new File("$rootDir/JavaDoc/")
+	options.links("http://docs.oracle.com/javase/8/docs/api/");
+	// To include everything from private level and up in the documentation
+	// options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PRIVATE
+}
+
+// Remove the Distribute and JavaDoc folders at the start of clean
+clean.doFirst {
+	def dirObj = new File("$rootDir/Distribute/")
+	dirObj.deleteDir()
+	dirObj = new File("$rootDir/JavaDoc/")
+	dirObj.deleteDir()
+}
+
+// JAR settings
+jar {
+    // Copy license files into the JAR's META-INF directory
+    into("META-INF") {
+        from "$rootDir/LICENSE", "$rootDir/NOTICE", "$rootDir/HDF_COPYING", "$rootDir/HDF_License.rtf"
+    }
+
+    // Create a "fat jar" file which includes all the dependencies; that way,
+    // the jar can be run stand-alone with none of the other dependency jars
+    // around.  The following was taken from a nice simple example found at:
+    // https://newfivefour.com/gradle-hello-world-java-fat-jar.html
+    // The "it" variable (kind of like "this" in Java) is a Groovy-ism which
+    // represents the implicit variable given to this closure, which I think is
+    // the project object.
+    from {
+        (configurations.runtime).collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+    // Include the needed HDF5 JNI DLL into the JAR file
+    from 'C:/Program Files/HDF_Group/HDF5/1.10.1/lib/hdf5_java.dll'
+    
+    // Build up a string containing all the runtime dependencies; this will be
+    // used as the 'Class-Path' string in the manifest instead of hard-wiring
+    // library names
+    StringBuilder sb = new StringBuilder();
+    project.configurations.runtime.each {
+        sb.append(it.name + ' ')
+    }
+    String runtimeDependenciesStr = sb.toString().trim()
+    
+    manifest {
+        attributes 'Main-Class': 'HDF5toCT',
+                   'Class-Path': runtimeDependenciesStr
+    }
+}
