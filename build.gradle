@@ -77,10 +77,12 @@ build.doLast {
 	task -> println "Built $task.project.name"
 	String fromLoc = "${buildDir}/libs/" + project.name + ".jar"
     String hdf5FromLocWinDLL = "$rootDir/ThirdParty/hdf5_java.dll"
+    String hdf5FromLocLinuxSO = "$rootDir/ThirdParty/libhdf5_java.so"
 	String toLoc = "./Distribute"
 	copy {
 		from fromLoc
-        from hdf5FromLocWinDLL
+        	from hdf5FromLocWinDLL
+		from hdf5FromLocLinuxSO
 		into toLoc
 	}
 }
