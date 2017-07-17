@@ -16,16 +16,12 @@ apply plugin: 'java'
 
 defaultTasks 'build'
 
-// Supporting libraries go in Third_Party
+// Supporting libraries go in ThirdParty
 repositories {
     mavenCentral()
     flatDir {
-        // Location of libraries on Windows
-        dirs 'C:/Program Files/HDF_Group/HDF5/1.10.1/lib'
-        // Location of libraries on Linux
-        dirs '/usr/local/hdf5/lib'
-        // Location of CloudTurbine library, CTlib.jar
-        dirs "$rootDir/../../CloudTurbine/JavaCode/Distribute"
+        // Location of the HDF5 and CT libraries
+        dirs "$rootDir/ThirdParty"
     }
 }
 
@@ -76,15 +72,15 @@ compileJava.mustRunAfter clean
 
 // Copy the JAR file to a top level "Distribute" folder; do this last so we
 // make sure to get the new JAR file that we just built
-// Also copy hdf5_java.dll to the Distribute folder
+// Also copy over the shared HDF5 library
 build.doLast {
 	task -> println "Built $task.project.name"
 	String fromLoc = "${buildDir}/libs/" + project.name + ".jar"
-    String hdf5FromLoc = 'C:/Program Files/HDF_Group/HDF5/1.10.1/lib/hdf5_java.dll'
+    String hdf5FromLocWinDLL = "$rootDir/ThirdParty/hdf5_java.dll"
 	String toLoc = "./Distribute"
 	copy {
 		from fromLoc
-        from hdf5FromLoc
+        from hdf5FromLocWinDLL
 		into toLoc
 	}
 }
@@ -126,7 +122,8 @@ jar {
         }
     }
     // Include the needed HDF5 JNI DLL into the JAR file
-    from 'C:/Program Files/HDF_Group/HDF5/1.10.1/lib/hdf5_java.dll'
+    // No, don't do this, it isn't needed
+    // from 'C:/Program Files/HDF_Group/HDF5/1.10.1/lib/hdf5_java.dll'
     
     // Build up a string containing all the runtime dependencies; this will be
     // used as the 'Class-Path' string in the manifest instead of hard-wiring
