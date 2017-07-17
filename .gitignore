@@ -1,6 +1,7 @@
 *.bak
 *.class
 *~
+*.iml
 .DS_Store
 .project
 .classpath

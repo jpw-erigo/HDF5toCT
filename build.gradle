@@ -21,7 +21,7 @@ repositories {
     mavenCentral()
     flatDir {
         dirs 'C:/Program Files/HDF_Group/HDF5/1.10.1/lib'
-        dirs 'C:/Users/johnw/user/CloudTurbine/CloudTurbine/JavaCode/Distribute'
+        dirs "$rootDir/../../CloudTurbine/JavaCode/Distribute"
     }
 }
 
