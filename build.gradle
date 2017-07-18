@@ -26,9 +26,8 @@ repositories {
 }
 
 dependencies {
-	// Don't include the JAR as a dependency (it will try to unzip and add the
-	// individual files); instead, we just copy the DLL directly into the JAR
-	// in the jar task down below.
+	// Don't include the DLL as a dependency (it will try to unzip and add the
+	// individual files)
     // compile name: 'hdf5_java', ext: 'dll'
     compile name: 'jarhdf5-1.10.1'
     compile name: 'slf4j-api-1.7.5'
@@ -124,7 +123,7 @@ jar {
         }
     }
     // Include the needed HDF5 JNI DLL into the JAR file
-    // No, don't do this, it isn't needed
+    // No, don't do this, it isn't needed; this file just needs to be on the path
     // from 'C:/Program Files/HDF_Group/HDF5/1.10.1/lib/hdf5_java.dll'
     
     // Build up a string containing all the runtime dependencies; this will be
