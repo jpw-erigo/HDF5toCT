@@ -70,12 +70,10 @@ import org.apache.commons.cli.ParseException;
  *      accomplish this, ALL the data from every channel in the HDF5 file is read and stored in a large Map
  *      (using Google TreeMultimap); this is "brute force" and would run into problems with large datasets;
  *      see more notes on this below (search for "TreeMultimap").
- *  (c) This program is tailored to read a specific format of HDF5 file (the format used in the NASA samples
- *      we were given).  Thus, this is not a general HDF5-to-CT translator.  Notes on the expected format
- *      of the data files is listed below; in summary: we examine the top Dataset in the file; this Dataset
- *      must use a Compound Datatype and the data in the Dataset must be a 1-D array of these Compound elements;
- *      each Compound element will contain 2 channels, named "time" and either "data" or "value".
- *
+ *  (c) This is not a general purpose HDF5-to-CT translator.  Notes on the expected format of the data files:
+ *      we read data from Datasets in the top parent group; this Dataset must use a Compound
+ *      Datatype and the data in the Dataset must be a 1-D array of these Compound elements; each Compound element
+ *      must contain 2 channels, named "time" and either "data" or "value".
  */
 public class HDF5toCT {
     private String inFileFullPathName = null;   // full path to the file
@@ -323,31 +321,31 @@ public class HDF5toCT {
         // the nodes; the file structure comes first then values are organized by time; this could be called
         // this could be called organizing by "channels then time".  For example:
         //
-        // projectname_10_Hz.h5
-        //     DATR
-        //         ABK_C_C2_P
-        //             time=9326063.9173, value=1.13382528E9
-        //             time=9326064.0173, value=1.13379251E9
+        // foo.h5
+        //     Foo1
+        //         chan1
+        //             time=9326063.9173, value=1.1
+        //             time=9326064.0173, value=1.2
         //             etc
-        //         ABK_C_FCS_DEG
-        //             time=9326063.8323, value=1.10846438E9
-        //             time=9326063.9324, value=1.10820224E9
+        //         chan2
+        //             time=9326063.8323, value=1.3
+        //             time=9326063.9324, value=1.4
         //             etc
         //         etc
         //
         // For CT efficiency, we want to store data the opposite way: sort by "time then channels". Using the
         // same example as above, this would look like:
         //
-        // projectname_10_Hz.h5
-        //     DATR
+        // foo.h5
+        //     Foo1
         //         9326063.8323
-        //             ABK_C_FCS_DEG (file containing the value 1.10846438E9)
+        //             chan2 (file containing the value 1.3)
         //         9326063.9173
-        //             ABK_C_C2_P (file containing the value 1.13382528E9)
+        //             chan1 (file containing the value 1.1)
         //         9326063.9324
-        //             ABK_C_FCS_DEG (file containing the value 1.10820224E9)
+        //             chan2 (file containing the value 1.4)
         //         9326064.0173
-        //             ABK_C_C2_P (file containing the value 1.13379251E9)
+        //             chan1 (file containing the value 1.2)
         //
         // Problem is, to resort the data by time like this involves scanning over *all* channels.  The easiest (brute-
         // force) way to reorganize the data in this manner is to read *all* of the data from *all* channels into a

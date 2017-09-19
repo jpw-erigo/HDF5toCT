@@ -1,6 +1,6 @@
 Files in this ThirdParty directory are from the following locations:
 
-CTlib.jar			CT distribution files (for example, CloudTurbine\JavaCode\Distribute)
+CTlib.jar			CT distribution (for example, CloudTurbine\JavaCode\Distribute)
 
 hdf5_java.dll			Windows HDF5 v1.10.1 installation, "C:\Program Files\HDF_Group\HDF5\1.10.1\lib"
 
