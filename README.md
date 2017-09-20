@@ -9,4 +9,4 @@ Our goal was to support the conversion of a limited subset of HDF5 files to CT; 
 
 3. the dataspace of each dataset must be a 1-D array of entries (i.e., data must be stored in a 1-D array of compound elements where each element contains 2 channels – “time” and either “data” or “value”)
 
-*HDF5toCT* documentation can be found at <a href="http://www.cloudturbine.com/hdf5-to-ct/" target="_blank">http://www.cloudturbine.com/hdf5-to-ct/</a>
+*HDF5toCT* documentation can be found at http://www.cloudturbine.com/hdf5-to-ct/
